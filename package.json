@@ -1,0 +1,14 @@
+{
+  "name": "stroller-park-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "景区婴儿车租借与清洁周转平台（SQLite + 原生 Node，无外部依赖）",
+  "scripts": {
+    "start": "node server.js",
+    "seed": "node seed.js",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  }
+}

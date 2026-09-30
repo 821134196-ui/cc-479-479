@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>景区婴儿车租借与清洁周转平台</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="logo">🌳</div>
+  <div>
+    <h1>景区婴儿车租借与清洁周转平台</h1>
+    <div class="sub">服务点库存 · 借用核验 · 清洁周转 · 维修 · 押金复核</div>
+  </div>
+  <div class="spacer"></div>
+  <button class="bell" id="bellBtn" title="超时与调拨提醒">🔔<span class="badge" id="bellBadge">0</span></button>
+  <div class="bell-panel" id="bellPanel"></div>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button class="tab active" data-tab="inventory">点位库存</button>
+  <button class="tab" data-tab="rent">借用核验</button>
+  <button class="tab" data-tab="return">跨点归还</button>
+  <button class="tab" data-tab="cleaning">清洁队列 <span class="cnt" id="cntCleaning"></span></button>
+  <button class="tab" data-tab="inspect">车辆检查 <span class="cnt" id="cntInspect"></span></button>
+  <button class="tab" data-tab="repair">维修工单 <span class="cnt" id="cntRepair"></span></button>
+  <button class="tab" data-tab="deposit">押金复核 <span class="cnt" id="cntDeposit"></span></button>
+</nav>
+
+<main>
+  <!-- ============ 点位库存 ============ -->
+  <section class="panel active" id="panel-inventory">
+    <div class="grid-2">
+      <div class="card">
+        <h3>景区简图（点击点位查看库存）</h3>
+        <svg class="park-map" id="parkMap" viewBox="0 0 100 78" preserveAspectRatio="xMidYMid meet">
+          <rect x="1.5" y="1.5" width="97" height="75" rx="8" fill="#EDF4EC" stroke="#B9CFC0" stroke-width="0.8"/>
+          <ellipse cx="46" cy="46" rx="15" ry="10" fill="#CBE0F0" stroke="#A9C8E0" stroke-width="0.6"/>
+          <text x="46" y="47.5" font-size="4" fill="#5A87A8" text-anchor="middle">镜湖</text>
+          <path d="M12 72 Q 30 55 44 42 T 70 60" fill="none" stroke="#D8CEB8" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M70 60 Q 80 45 84 24" fill="none" stroke="#D8CEB8" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M44 42 Q 60 30 84 24" fill="none" stroke="#D8CEB8" stroke-width="1.6" stroke-dasharray="2 2"/>
+          <g id="mapPoints"></g>
+        </svg>
+        <div class="hint" style="margin-top:8px">绿色=有可借车辆；红色=缺车（触发调拨提醒）</div>
+      </div>
+      <div class="card">
+        <h3>服务点列表</h3>
+        <div id="pointList"></div>
+      </div>
+    </div>
+    <div class="card mt">
+      <h3 id="vehicleTableTitle">车辆库存</h3>
+      <table>
+        <thead><tr>
+          <th>车辆编号</th><th>体重上限</th><th>遮阳篷</th><th>雨罩</th><th>状态</th><th>清洁状态</th><th>操作</th>
+        </tr></thead>
+        <tbody id="vehicleRows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 借用核验 ============ -->
+  <section class="panel" id="panel-rent">
+    <div class="steps" id="rentSteps">
+      <span class="step now">① 扫码锁车</span><span class="step todo">② 游客信息</span>
+      <span class="step todo">③ 借出检查</span><span class="step todo">④ 游客签署</span>
+    </div>
+    <div id="rentAlert"></div>
+
+    <div class="card" id="rentStep1">
+      <h3>① 扫码锁车</h3>
+      <div class="form-row">
+        <div class="field">
+          <label>服务点</label>
+          <select id="rentPoint"></select>
+        </div>
+        <div class="field">
+          <label>车辆编号（模拟扫码）</label>
+          <div style="display:flex;gap:8px">
+            <input type="text" id="rentScanCode" placeholder="如 ST-001">
+            <button class="btn ghost" id="btnMockScan">模拟扫码</button>
+          </div>
+          <div class="hint" id="rentPointHint"></div>
+        </div>
+      </div>
+      <button class="btn" id="btnLock">锁定车辆</button>
+    </div>
+
+    <div class="card" id="rentStep2" style="display:none">
+      <h3>② 游客信息（样例）</h3>
+      <div class="form-row">
+        <div class="field"><label>游客姓名</label><input type="text" id="touristName" value="王样例"></div>
+        <div class="field"><label>联系电话</label><input type="tel" id="touristPhone" value="13900001111"></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>儿童体重（kg）</label><input type="number" id="childWeight" min="1" max="40" step="0.5" value="14"></div>
+        <div class="field"><label>租借时段</label>
+          <select id="rentPeriod">
+            <option value="2h">2 小时</option>
+            <option value="halfday">半日（4 小时）</option>
+            <option value="fullday">全日（至闭园）</option>
+          </select>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn" id="btnToCheck">下一步：借出检查</button>
+        <button class="btn ghost" id="btnCancelLock2">取消</button>
+      </div>
+    </div>
+
+    <div class="card" id="rentStep3" style="display:none">
+      <h3>③ 借出检查（点击车辆轮廓上的标注点，或在右侧逐项确认）</h3>
+      <div class="inspect-wrap">
+        <svg class="stroller-svg" id="strollerSvg" viewBox="0 0 320 230">
+          <!-- 婴儿车侧视轮廓 -->
+          <g stroke="#1E5B3E" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M78 78 Q 82 40 128 38 L 168 38 Q 196 40 200 66 L 202 78" fill="#F6C445" fill-opacity="0.35"/>
+            <path d="M70 82 L 208 82 L 196 128 Q 193 140 180 140 L 108 140 Q 96 140 93 128 Z" fill="#ffffff"/>
+            <path d="M208 82 L 262 46"/>
+            <path d="M262 46 L 274 52"/>
+            <path d="M100 140 L 88 196"/>
+            <path d="M188 140 L 206 196"/>
+            <path d="M88 196 L 206 196" stroke-dasharray="1 0"/>
+            <circle cx="88" cy="202" r="17" fill="#fff"/>
+            <circle cx="206" cy="202" r="17" fill="#fff"/>
+            <circle cx="88" cy="202" r="6" fill="#1E5B3E" stroke="none"/>
+            <circle cx="206" cy="202" r="6" fill="#1E5B3E" stroke="none"/>
+            <path d="M118 96 L 160 96 M 139 96 L 139 128" stroke-width="3.5"/>
+          </g>
+          <!-- 标注点：篷布 / 安全带 / 刹车 -->
+          <g class="hotspot" data-key="canopy">
+            <circle cx="140" cy="30" r="13"/><text x="140" y="35">篷</text>
+            <text class="hotspot-label" x="140" y="14" text-anchor="middle">遮阳篷</text>
+          </g>
+          <g class="hotspot" data-key="belt">
+            <circle cx="139" cy="112" r="13"/><text x="139" y="117">带</text>
+            <text class="hotspot-label" x="96" y="116" text-anchor="end">安全带</text>
+          </g>
+          <g class="hotspot" data-key="brake">
+            <circle cx="238" cy="196" r="13"/><text x="238" y="201">刹</text>
+            <text class="hotspot-label" x="252" y="178" text-anchor="middle">刹车</text>
+          </g>
+        </svg>
+        <div>
+          <div class="check-item" data-key="brake">
+            <div><div class="nm">刹车</div><div class="desc">踩下后车轮锁死、回弹正常</div></div>
+            <div class="toggle"><button data-v="ok" class="on-ok">正常</button><button data-v="bad">异常</button></div>
+          </div>
+          <div class="check-item" data-key="belt">
+            <div><div class="nm">安全带</div><div class="desc">卡扣有效、织带无破损</div></div>
+            <div class="toggle"><button data-v="ok" class="on-ok">正常</button><button data-v="bad">异常</button></div>
+          </div>
+          <div class="check-item" data-key="canopy">
+            <div><div class="nm">遮阳篷</div><div class="desc">篷布完整、支撑杆到位</div></div>
+            <div class="toggle"><button data-v="ok" class="on-ok">正常</button><button data-v="bad">异常</button></div>
+          </div>
+          <div class="check-item" data-key="rain" id="rainCheckItem">
+            <div><div class="nm">雨罩</div><div class="desc">随车雨罩在位、无破损</div></div>
+            <div class="toggle"><button data-v="ok" class="on-ok">在位</button><button data-v="bad">缺失</button></div>
+          </div>
+          <div class="check-item" data-key="accessories">
+            <div><div class="nm">其他配件</div><div class="desc">杯架、置物袋、挂钩齐全</div></div>
+            <div class="toggle"><button data-v="ok" class="on-ok">齐全</button><button data-v="bad">缺失</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="btn-row mt">
+        <button class="btn" id="btnToSign">检查完成，去签署</button>
+        <button class="btn ghost" id="btnCancelLock3">取消租借</button>
+      </div>
+    </div>
+
+    <div class="card" id="rentStep4" style="display:none;max-width:560px">
+      <h3>④ 游客签署</h3>
+      <ul class="sign-lines">
+        <li id="signSummary">租借 ST-001 · 2 小时</li>
+        <li>押金 ¥200，归还即退</li>
+        <li>超时每 30 分钟 ¥10，遗失配件照价扣减</li>
+        <li>可在任意服务点归还（跨点归还）</li>
+      </ul>
+      <div class="field"><label>游客签名（输入姓名即视为签署）</label><input type="text" id="signName" placeholder="游客姓名"></div>
+      <div class="big-actions">
+        <button class="btn sun big" id="btnConfirmRent">确认签署并借出</button>
+        <button class="btn ghost big" id="btnCancelLock4">取消租借</button>
+      </div>
+    </div>
+
+    <div id="rentResult"></div>
+  </section>
+
+  <!-- ============ 跨点归还 ============ -->
+  <section class="panel" id="panel-return">
+    <div class="grid-2-even">
+      <div class="card">
+        <h3>扫码归还（租借单号或车辆编号）</h3>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="returnScanCode" placeholder="如 R-100001 或 ST-004">
+          <button class="btn ghost" id="btnReturnScan">模拟扫码</button>
+          <button class="btn" id="btnFindRental">查询</button>
+        </div>
+        <div id="rentalInfo"></div>
+      </div>
+      <div class="card" id="returnFormCard" style="display:none">
+        <h3>归还复核</h3>
+        <div class="field">
+          <label>归还服务点（支持跨点，满仓点位不可选）</label>
+          <div class="chips" id="returnPointChips"></div>
+        </div>
+        <div class="check-item" data-key="appearance">
+          <div><div class="nm">外观</div><div class="desc">车架无新损伤、篷布完好</div></div>
+          <div class="toggle"><button data-v="ok" class="on-ok">完好</button><button data-v="bad">有损伤</button></div>
+        </div>
+        <div class="check-item" data-key="brake">
+          <div><div class="nm">刹车</div><div class="desc">制动有效（异常将直接转维修）</div></div>
+          <div class="toggle"><button data-v="ok" class="on-ok">正常</button><button data-v="bad">异常</button></div>
+        </div>
+        <div class="field">
+          <label>遗失配件（勾选）</label>
+          <div class="chips" id="missingChips">
+            <button class="chip" data-acc="rain_cover">雨罩</button>
+            <button class="chip" data-acc="canopy_clip">遮阳篷卡扣</button>
+            <button class="chip" data-acc="belt_buckle">安全带卡扣</button>
+            <button class="chip" data-acc="cup_holder">杯架</button>
+          </div>
+        </div>
+        <div id="damageFields" style="display:none">
+          <div class="field"><label>损伤说明</label><input type="text" id="damageNote" placeholder="如：车架右侧刮痕"></div>
+          <div class="form-row">
+            <div class="field"><label>损伤扣款（元）</label><input type="number" id="damageFee" min="0" value="0"></div>
+            <div class="field"><label>损伤照片（存本地目录）</label><input type="file" id="damagePhotos" accept="image/*" multiple></div>
+          </div>
+          <div class="photo-preview" id="photoPreview"></div>
+        </div>
+        <div class="btn-row mt">
+          <button class="btn sun" id="btnDoReturn">确认归还并退押金</button>
+        </div>
+      </div>
+    </div>
+    <div id="returnResult"></div>
+  </section>
+
+  <!-- ============ 清洁队列 ============ -->
+  <section class="panel" id="panel-cleaning">
+    <div class="card">
+      <h3>清洁消毒队列（归还车辆须完成清洁并通过安全复检才可再借）</h3>
+      <table>
+        <thead><tr><th>任务</th><th>车辆</th><th>服务点</th><th>体重上限</th><th>状态</th><th>保洁员</th><th>操作</th></tr></thead>
+        <tbody id="cleaningRows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 车辆检查 ============ -->
+  <section class="panel" id="panel-inspect">
+    <div class="grid-2-even">
+      <div class="card">
+        <h3>待安全复检车辆（须点位主管操作）</h3>
+        <div id="inspectList"></div>
+      </div>
+      <div class="card">
+        <h3>安全复检登记</h3>
+        <div class="form-row">
+          <div class="field"><label>复检人</label><input type="text" id="inspectorName" value="主管-李"></div>
+          <div class="field"><label>角色</label>
+            <select id="inspectorRole">
+              <option value="supervisor">点位主管</option>
+              <option value="staff">普通员工（无权复检）</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label>车辆</label><select id="inspectVehicle"></select></div>
+        <div class="check-item" data-key="brake">
+          <div><div class="nm">刹车</div></div>
+          <div class="toggle"><button data-v="ok" class="on-ok">合格</button><button data-v="bad">不合格</button></div>
+        </div>
+        <div class="check-item" data-key="belt">
+          <div><div class="nm">安全带</div></div>
+          <div class="toggle"><button data-v="ok" class="on-ok">合格</button><button data-v="bad">不合格</button></div>
+        </div>
+        <div class="check-item" data-key="accessories">
+          <div><div class="nm">配件</div></div>
+          <div class="toggle"><button data-v="ok" class="on-ok">合格</button><button data-v="bad">不合格</button></div>
+        </div>
+        <div class="field"><label>备注</label><input type="text" id="inspectNote" placeholder="不合格原因等"></div>
+        <button class="btn" id="btnInspect">提交复检结果</button>
+        <div id="inspectAlert"></div>
+      </div>
+    </div>
+    <div class="card mt">
+      <h3>检查记录</h3>
+      <table>
+        <thead><tr><th>时间</th><th>车辆</th><th>类型</th><th>刹车</th><th>安全带</th><th>配件</th><th>结果</th><th>检查人</th></tr></thead>
+        <tbody id="inspectionRows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 维修工单 ============ -->
+  <section class="panel" id="panel-repair">
+    <div class="grid-2-even">
+      <div class="card">
+        <h3>故障报修（普通员工可报修）</h3>
+        <div class="field"><label>车辆</label><select id="repairVehicle"></select></div>
+        <div class="field"><label>故障描述</label><input type="text" id="repairIssue" placeholder="如：刹车异响、轮轴松动"></div>
+        <div class="field"><label>报修人</label><input type="text" id="repairStaff" value="员工-小王"></div>
+        <button class="btn" id="btnReportRepair">提交报修</button>
+        <div class="hint mt">维修中的车辆不可租借、不可调拨；修复后须主管安全复检。</div>
+        <div id="repairAlert"></div>
+      </div>
+      <div class="card">
+        <h3>维修工单</h3>
+        <table>
+          <thead><tr><th>单号</th><th>车辆</th><th>服务点</th><th>故障</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody id="repairRows"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 押金复核 ============ -->
+  <section class="panel" id="panel-deposit">
+    <div class="grid-2-even">
+      <div class="card">
+        <h3>发起押金复核（押金争议）</h3>
+        <div class="field"><label>租借单号</label><input type="text" id="disputeRental" placeholder="如 R-100000"></div>
+        <div class="field"><label>争议原因</label><input type="text" id="disputeReason" placeholder="如：游客对超时扣款有异议"></div>
+        <button class="btn" id="btnDispute">提交复核</button>
+        <div id="depositAlert"></div>
+      </div>
+      <div class="card">
+        <h3>复核单</h3>
+        <table>
+          <thead><tr><th>单号</th><th>租借单</th><th>游客</th><th>押金/扣款</th><th>原因</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody id="depositRows"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="toast"></div>
+<script src="/app.js"></script>
+</body>
+</html>
