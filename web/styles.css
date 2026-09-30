@@ -1,0 +1,293 @@
+/* 景区白 / 森林绿 / 阳光黄 */
+:root {
+  --white: #fbfaf5;
+  --paper: #ffffff;
+  --green: #2f6b4f;
+  --green-dark: #224f3a;
+  --green-soft: #e3efe7;
+  --yellow: #f6c945;
+  --yellow-dark: #e3ac12;
+  --ink: #27332c;
+  --muted: #6b7a71;
+  --red: #c44b3f;
+  --red-soft: #fbe6e3;
+  --blue: #356a8f;
+  --shadow: 0 6px 24px rgba(34, 79, 58, .10);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif;
+  background: var(--white);
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+/* ---------- 顶栏 ---------- */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 22px;
+  background: linear-gradient(100deg, var(--green-dark), var(--green) 60%);
+  color: #fff;
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand h1 { margin: 0; font-size: 19px; letter-spacing: .5px; }
+.brand .sub { margin: 2px 0 0; font-size: 12px; opacity: .85; }
+.logo { display: inline-flex; }
+.actor-box { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.actor-box select {
+  border: none; border-radius: 8px; padding: 7px 10px; font-size: 14px;
+  background: rgba(255,255,255,.92); color: var(--ink); cursor: pointer;
+}
+.role-tag {
+  background: var(--yellow); color: var(--green-dark); font-weight: 700;
+  padding: 3px 10px; border-radius: 999px; font-size: 12px;
+}
+
+/* ---------- 三栏布局 ---------- */
+.layout {
+  display: grid;
+  grid-template-columns: 330px 1fr 330px;
+  gap: 16px;
+  padding: 16px 20px 28px;
+  align-items: start;
+}
+.panel {
+  background: var(--paper);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 16px 18px;
+}
+.panel h2 { margin: 0 0 12px; font-size: 16px; color: var(--green-dark); }
+.panel h3 { font-size: 13px; margin: 14px 0 6px; color: var(--green-dark); }
+
+/* ---------- 地图 ---------- */
+.map-wrap {
+  border-radius: 12px; overflow: hidden;
+  border: 1px solid var(--green-soft);
+  background: #f6faf6;
+}
+#map { width: 100%; height: 180px; }
+.map-label { font-size: 3.6px; fill: #8ba692; }
+.map-point { cursor: pointer; }
+.map-point circle.ring {
+  fill: var(--green); stroke: #fff; stroke-width: .8;
+  transition: r .15s;
+}
+.map-point.soldout circle.ring { fill: var(--red); }
+.map-point.full circle.ring { fill: var(--yellow-dark); }
+.map-point.selected circle.ring { stroke: var(--yellow); stroke-width: 1.4; }
+.map-point text {
+  font-size: 3.4px; fill: #fff; text-anchor: middle; dominant-baseline: central;
+  font-weight: 700;
+}
+.map-point .pname {
+  font-size: 3.2px; fill: var(--green-dark); stroke: #fbfaf5; stroke-width: .35;
+  paint-order: stroke; text-anchor: middle; font-weight: 700;
+}
+
+/* ---------- 点位列表（放在地图旁） ---------- */
+.point-list { list-style: none; margin: 12px 0 0; padding: 0; }
+.point-list li {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 10px; margin-bottom: 6px;
+  border-radius: 10px; background: var(--green-soft); cursor: pointer;
+  border: 2px solid transparent;
+}
+.point-list li:hover { background: #d5e6da; }
+.point-list li.selected { border-color: var(--green); }
+.point-list .p-meta { font-size: 12px; color: var(--muted); }
+.point-list .p-name { font-weight: 700; font-size: 14px; }
+.stock-pill {
+  font-weight: 800; font-size: 13px; padding: 4px 11px; border-radius: 999px;
+}
+.stock-pill.ok { background: var(--green); color: #fff; }
+.stock-pill.warn { background: var(--yellow); color: var(--green-dark); }
+.stock-pill.zero { background: var(--red); color: #fff; }
+
+.task-strip { border-top: 1px dashed #cfe0d5; margin-top: 12px; padding-top: 4px; }
+.task-strip ul { list-style: none; margin: 0; padding: 0; }
+.task-strip li {
+  font-size: 12px; color: var(--muted); padding: 3px 0;
+}
+.task-strip li b { color: var(--green-dark); }
+
+/* ---------- 车辆表 ---------- */
+.panel-head { display: flex; align-items: center; justify-content: space-between; }
+.filter-tag {
+  font-size: 12px; background: var(--yellow); color: var(--green-dark);
+  border-radius: 999px; padding: 2px 10px; font-weight: 700;
+}
+.legend { font-size: 12px; color: var(--muted); display: flex; gap: 12px; flex-wrap: wrap; }
+.legend span { display: inline-flex; align-items: center; gap: 4px; }
+.dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.dot.available { background: var(--green); }
+.dot.on_rent { background: var(--blue); }
+.dot.cleaning { background: var(--yellow-dark); }
+.dot.maintenance { background: var(--red); }
+.dot.reserved { background: #9b6fb0; }
+
+.table-wrap { overflow-x: auto; }
+.fleet-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.fleet-table th {
+  text-align: left; padding: 8px 10px; color: var(--muted); font-weight: 600;
+  border-bottom: 2px solid var(--green-soft); white-space: nowrap;
+}
+.fleet-table td { padding: 10px; border-bottom: 1px solid #eef3ef; vertical-align: middle; }
+.fleet-table tr:hover td { background: #f7fbf8; }
+.vehicle-id { font-weight: 800; color: var(--green-dark); }
+.weight-cell b { color: var(--green); font-size: 15px; }
+.accessory { margin-right: 8px; font-size: 12px; }
+.accessory.missing { color: var(--red); font-weight: 700; }
+.accessory.ok { color: var(--muted); }
+.status-chip {
+  display: inline-block; padding: 3px 10px; border-radius: 999px;
+  font-size: 12px; font-weight: 700; white-space: nowrap;
+}
+.status-chip.available { background: var(--green-soft); color: var(--green); }
+.status-chip.on_rent { background: #e4eef6; color: var(--blue); }
+.status-chip.cleaning { background: #fdf1d2; color: #9a7416; }
+.status-chip.maintenance { background: var(--red-soft); color: var(--red); }
+.status-chip.reserved { background: #f1e7f6; color: #7a4d92; }
+.clean-badge { font-size: 12px; font-weight: 700; }
+.clean-badge.clean { color: var(--green); }
+.clean-badge.dirty { color: #9a7416; }
+
+.btn {
+  border: none; border-radius: 10px; padding: 8px 14px; font-size: 13.5px;
+  cursor: pointer; font-weight: 700; transition: transform .05s, filter .15s;
+}
+.btn:active { transform: translateY(1px); }
+.btn-green { background: var(--green); color: #fff; }
+.btn-green:hover { filter: brightness(1.07); }
+.btn-yellow { background: var(--yellow); color: var(--green-dark); }
+.btn-yellow:hover { background: #ffd95e; }
+.btn-ghost { background: transparent; color: var(--muted); border: 1.5px solid #cdd8d1; }
+.btn-ghost:hover { background: #f2f6f3; }
+.btn-red { background: var(--red-soft); color: var(--red); }
+.btn[disabled] { opacity: .45; cursor: not-allowed; }
+.btn.sm { padding: 5px 10px; font-size: 12px; }
+
+.split-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 6px; }
+.mini-list { list-style: none; margin: 0; padding: 0; max-height: 190px; overflow-y: auto; }
+.mini-list li {
+  padding: 8px 10px; border-radius: 9px; background: #f6faf6; margin-bottom: 6px;
+  font-size: 12.5px; display: flex; flex-direction: column; gap: 5px;
+}
+.mini-list .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.mini-list .issue { color: var(--muted); }
+.mini-list .empty { color: #9db1a3; background: none; text-align: center; padding: 14px; }
+
+/* ---------- 租借单 ---------- */
+.tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+.tab {
+  flex: 1; border: none; background: var(--green-soft); color: var(--green-dark);
+  padding: 7px 0; border-radius: 9px 9px 0 0; cursor: pointer; font-weight: 700; font-size: 12.5px;
+}
+.tab.active { background: var(--green); color: #fff; }
+.rental-list { list-style: none; margin: 0; padding: 0; max-height: 560px; overflow-y: auto; }
+.rental-list > li {
+  border: 1px solid #e6efe9; border-radius: 12px; padding: 11px 12px; margin-bottom: 9px;
+}
+.rental-list .r-top { display: flex; justify-content: space-between; align-items: center; }
+.rental-list .r-id { font-weight: 800; font-size: 13px; color: var(--green-dark); }
+.rental-list .r-detail { font-size: 12.5px; color: var(--muted); margin: 5px 0; line-height: 1.6; }
+.rental-list .r-detail span { margin-right: 10px; }
+.rental-list .r-actions { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+
+/* ---------- 抽屉与签署页 ---------- */
+.drawer {
+  position: fixed; inset: 0; background: rgba(30,50,40,.42); z-index: 40;
+  display: flex; justify-content: flex-end;
+}
+.drawer.hidden { display: none; }
+.drawer-card {
+  background: var(--white); width: 460px; max-width: 94vw; height: 100%;
+  padding: 22px 24px; overflow-y: auto; position: relative;
+  box-shadow: -10px 0 40px rgba(0,0,0,.18);
+}
+.drawer-card.small { width: 400px; }
+.drawer-card h2 { color: var(--green-dark); font-size: 18px; margin: 0 0 14px; }
+.close-x {
+  position: absolute; top: 12px; right: 14px; border: none; background: none;
+  font-size: 26px; color: var(--muted); cursor: pointer; line-height: 1;
+}
+.form-row { margin-bottom: 12px; }
+.form-row label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 5px; }
+.form-row input, .form-row select, .form-row textarea {
+  width: 100%; padding: 9px 11px; border: 1.5px solid #cfdcd3; border-radius: 9px;
+  font-size: 14px; font-family: inherit; background: #fff;
+}
+.form-row textarea { min-height: 64px; resize: vertical; }
+.check-row {
+  display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px;
+  border-radius: 10px; background: var(--green-soft); margin-bottom: 8px;
+  cursor: pointer; font-size: 14px;
+}
+.check-row.bad { background: var(--red-soft); }
+.check-row input { width: 18px; height: 18px; margin-top: 1px; accent-color: var(--green); }
+.check-row .hint { font-size: 12px; color: var(--muted); display: block; }
+.step-result {
+  background: var(--green-soft); border-left: 4px solid var(--green);
+  padding: 10px 12px; border-radius: 8px; font-size: 13px; margin: 10px 0;
+}
+.step-result.err { background: var(--red-soft); border-color: var(--red); color: #7c2d26; }
+
+/* 车辆轮廓检查图 */
+.silhouette {
+  width: 100%; max-width: 380px; display: block; margin: 4px auto 10px;
+}
+.silhouette .part { cursor: pointer; }
+.silhouette .part circle { fill: var(--yellow); stroke: var(--green-dark); stroke-width: 1.2; }
+.silhouette .part text {
+  font-size: 6px; font-weight: 800; fill: var(--green-dark);
+  text-anchor: middle; dominant-baseline: central;
+}
+.silhouette .part.checked circle { fill: var(--green); }
+.silhouette .part.checked text { fill: #fff; }
+.silhouette .part.fault circle { fill: var(--red); }
+.silhouette .part.fault text { fill: #fff; }
+.silhouette .part-label { font-size: 9px; fill: var(--green-dark); font-weight: 700; }
+
+.sign-page {
+  position: fixed; inset: 0; z-index: 60;
+  background: linear-gradient(160deg, var(--green-dark), var(--green));
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.sign-page.hidden { display: none; }
+.sign-card {
+  background: var(--white); border-radius: 22px; padding: 30px 28px;
+  max-width: 440px; width: 100%; text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,.3);
+}
+.sign-kicker { color: var(--yellow-dark); font-weight: 800; letter-spacing: 3px; margin: 0; }
+.sign-card h2 { font-size: 21px; margin: 8px 0 14px; color: var(--green-dark); }
+.sign-points { list-style: none; padding: 0; margin: 0 0 16px; text-align: left; }
+.sign-points li {
+  background: var(--green-soft); border-radius: 10px; padding: 11px 14px;
+  margin-bottom: 8px; font-size: 15px; font-weight: 700; color: var(--green-dark);
+}
+.sign-points li::before { content: "✓ "; color: var(--green); }
+.sign-meta { font-size: 12px; color: var(--muted); margin: 4px 0 14px; }
+.sign-name input {
+  width: 100%; padding: 14px; font-size: 17px; border: 2px dashed var(--green);
+  border-radius: 12px; text-align: center; background: #fff;
+}
+.sign-actions { display: flex; gap: 10px; margin-top: 16px; }
+.btn.big { flex: 1; padding: 16px 10px; font-size: 17px; border-radius: 13px; }
+
+/* ---------- 提示条 ---------- */
+.toast {
+  position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%);
+  background: var(--green-dark); color: #fff; padding: 12px 20px; border-radius: 12px;
+  font-size: 14px; z-index: 100; max-width: 90vw; box-shadow: 0 8px 30px rgba(0,0,0,.3);
+}
+.toast.err { background: var(--red); }
+.toast.hidden { display: none; }
+
+.hidden { display: none !important; }
+
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: 1fr; }
+}

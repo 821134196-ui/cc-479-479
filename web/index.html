@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>云栖谷 · 婴儿车租借与清洁周转平台</title>
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo" aria-hidden="true">
+      <svg viewBox="0 0 32 32" width="30" height="30"><path d="M7 24h2M23 24h2M9 24a5 5 0 0 0 10 0M19 24a5 5 0 0 0 10 0" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/><path d="M9 24V11l14 13z" fill="#F6C945" stroke="#fff" stroke-width="1.4"/><path d="M9 11a8 8 0 0 1 8 0" fill="none" stroke="#fff" stroke-width="1.6"/></svg>
+    </span>
+    <div>
+      <h1>云栖谷婴儿车周转平台</h1>
+      <p class="sub">借出核验 · 清洁复检 · 跨点调度</p>
+    </div>
+  </div>
+  <div class="actor-box">
+    <label for="actor">当班人员</label>
+    <select id="actor"></select>
+    <span id="actorRole" class="role-tag"></span>
+  </div>
+</header>
+
+<main class="layout">
+  <!-- 左：地图 + 点位库存 -->
+  <section class="panel map-panel">
+    <h2>服务点库存</h2>
+    <div class="map-wrap">
+      <svg id="map" viewBox="0 0 100 70" preserveAspectRatio="none" role="img" aria-label="景区服务点地图">
+        <!-- 简化景区底图 -->
+        <path d="M0,46 C18,40 30,52 46,44 C62,36 78,46 100,40 L100,70 L0,70 Z" fill="#dfeee2"/>
+        <path d="M0,58 C22,54 40,62 60,56 C78,51 90,58 100,54 L100,70 L0,70 Z" fill="#c4ddcc"/>
+        <ellipse cx="30" cy="16" rx="13" ry="7" fill="#eef4e2"/>
+        <text x="30" y="18" class="map-label">竹林</text>
+        <ellipse cx="84" cy="14" rx="11" ry="6" fill="#eef4e2"/>
+        <text x="84" y="16" class="map-label">花田</text>
+        <path d="M8 64 C30 40, 52 52, 72 30 S92 18, 96 10" stroke="#cbb892" stroke-width="1.4" fill="none" stroke-dasharray="2 2"/>
+        <g id="mapPoints"></g>
+      </svg>
+    </div>
+    <ul id="pointList" class="point-list"></ul>
+    <div class="task-strip">
+      <h3>进程内任务提醒</h3>
+      <ul id="taskList"></ul>
+      <h3>调拨提醒</h3>
+      <ul id="reminderList"></ul>
+    </div>
+  </section>
+
+  <!-- 中：车辆 -->
+  <section class="panel fleet-panel">
+    <div class="panel-head">
+      <h2>车辆 <span id="fleetFilter" class="filter-tag">全部点位</span></h2>
+      <div class="legend">
+        <span><i class="dot available"></i>可借</span>
+        <span><i class="dot on_rent"></i>在租</span>
+        <span><i class="dot cleaning"></i>待清洁</span>
+        <span><i class="dot maintenance"></i>维修</span>
+        <span><i class="dot reserved"></i>已锁定</span>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="fleet-table">
+        <thead>
+          <tr><th>车辆编号</th><th>所在点</th><th>体重上限</th><th>配件</th>
+          <th>清洁状态</th><th>车辆状态</th><th>操作</th></tr>
+        </thead>
+        <tbody id="fleetBody"></tbody>
+      </table>
+    </div>
+    <div class="split-cols">
+      <div>
+        <h3>清洁消毒队列</h3>
+        <ul id="cleaningList" class="mini-list"></ul>
+      </div>
+      <div>
+        <h3>维修工单</h3>
+        <ul id="woList" class="mini-list"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 右：租借与押金 -->
+  <section class="panel rent-panel">
+    <h2>租借单</h2>
+    <div class="tabs">
+      <button class="tab active" data-tab="active">在租/超时</button>
+      <button class="tab" data-tab="disputed">押金争议</button>
+      <button class="tab" data-tab="all">全部</button>
+    </div>
+    <ul id="rentalList" class="rental-list"></ul>
+  </section>
+</main>
+
+<!-- 借出流程抽屉 -->
+<div id="rentDrawer" class="drawer hidden" aria-hidden="true">
+  <div class="drawer-card">
+    <button class="close-x" data-close="rentDrawer">×</button>
+    <div id="rentStepWrap"></div>
+  </div>
+</div>
+
+<!-- 归还抽屉 -->
+<div id="returnDrawer" class="drawer hidden" aria-hidden="true">
+  <div class="drawer-card">
+    <button class="close-x" data-close="returnDrawer">×</button>
+    <h2>归还复核</h2>
+    <div id="returnStepWrap"></div>
+  </div>
+</div>
+
+<!-- 通用操作抽屉（维修/调拨/复检） -->
+<div id="actionDrawer" class="drawer hidden" aria-hidden="true">
+  <div class="drawer-card small">
+    <button class="close-x" data-close="actionDrawer">×</button>
+    <div id="actionWrap"></div>
+  </div>
+</div>
+
+<!-- 签署全屏页（大按钮、短文本） -->
+<div id="signPage" class="sign-page hidden">
+  <div class="sign-card">
+    <p class="sign-kicker">请游客确认</p>
+    <h2>车辆已安全检查，押金已预授权</h2>
+    <ul class="sign-points">
+      <li>刹车、安全带已试好</li>
+      <li>遮阳篷、雨罩齐全</li>
+      <li>按时归还，跨点可还</li>
+    </ul>
+    <p class="sign-meta" id="signMeta"></p>
+    <div class="sign-name">
+      <input id="signName" type="text" placeholder="游客签名（输入姓名即可，样例）" maxlength="20">
+    </div>
+    <div class="sign-actions">
+      <button class="btn btn-ghost big" data-close="signPage">再检查一下</button>
+      <button id="signConfirm" class="btn btn-yellow big">我已确认，签字借车</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
